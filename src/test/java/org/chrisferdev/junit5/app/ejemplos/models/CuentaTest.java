@@ -3,6 +3,8 @@ package org.chrisferdev.junit5.app.ejemplos.models;
 import org.chrisferdev.junit5.app.ejemplos.exceptions.DineroInsuficienteException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -75,7 +77,6 @@ class CuentaTest {
     class CuentaOperacionesTest {
         @Test
         void testDebitoCuenta() {
-            cuenta = new Cuenta("Andres", new BigDecimal("1000.12345"));
             cuenta.debito(new BigDecimal(100));
             assertNotNull(cuenta.getSaldo());
             assertEquals(900, cuenta.getSaldo().intValue());
@@ -263,6 +264,27 @@ class CuentaTest {
             assertEquals(1000.12345, cuenta.getSaldo().doubleValue());
         });
         assertFalse(cuenta.getSaldo().compareTo(BigDecimal.ZERO) < 0);
+        assertTrue(cuenta.getSaldo().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @DisplayName("Probando Debito Cuenta Repetir!")
+    @RepeatedTest(value=5, name = "{displayName} - Repetición numero {currentRepetition} de {totalRepetitions}")
+    void testDebitoCuentaRepetir(RepetitionInfo info) {
+        if(info.getCurrentRepetition() == 3){
+            System.out.println("estamos en la repetición " + info.getCurrentRepetition());
+        }
+        cuenta = new Cuenta("Andres", new BigDecimal("1000.12345"));
+        cuenta.debito(new BigDecimal(100));
+        assertNotNull(cuenta.getSaldo());
+        assertEquals(900, cuenta.getSaldo().intValue());
+        assertEquals("900.12345", cuenta.getSaldo().toPlainString());
+    }
+
+    @ParameterizedTest(name = "numero {index} ejecutando con valor {0} {argumentsWithNames}")
+    @ValueSource(strings = {"100", "200", "300", "500", "700", "1000.12345"})
+    void testDebitoCuenta(String monto) {
+        cuenta.debito(new BigDecimal(monto));
+        assertNotNull(cuenta.getSaldo());
         assertTrue(cuenta.getSaldo().compareTo(BigDecimal.ZERO) > 0);
     }
 }
