@@ -23,10 +23,17 @@ import static org.junit.jupiter.api.Assumptions.*;
 class CuentaTest {
     Cuenta cuenta;
 
+    private TestInfo testInfo;
+    private TestReporter testReporter;
+
     @BeforeEach
-    void initMetodoTest() {
+    void initMetodoTest(TestInfo testInfo, TestReporter testReporter) {
         this.cuenta = new Cuenta("Andres", new BigDecimal("1000.12345"));
+        this.testInfo = testInfo;
+        this.testReporter = testReporter;
         System.out.println("iniciando el metodo.");
+        testReporter.publishEntry(" ejecutando = " + testInfo.getDisplayName() + " " + testInfo.getTestMethod().orElse(null).getName()
+                + " con las etiquetas " + testInfo.getTags());
     }
 
     @AfterEach
@@ -51,6 +58,10 @@ class CuentaTest {
         @Test
         @DisplayName("el nombre!")
         void testNombreCuenta() {
+            testReporter.publishEntry(testInfo.getTags().toString());
+            if(testInfo.getTags().contains("cuenta")){
+                testReporter.publishEntry("hacer algo con la etiqueta cuenta");
+            }
             //cuenta.setPersona("Andres");
             String esperado = "Andres";
             String real = cuenta.getPersona();
@@ -79,6 +90,7 @@ class CuentaTest {
             assertEquals(cuenta2, cuenta);
         }
     }
+
     @Nested
     class CuentaOperacionesTest {
         @Tag("cuenta")
@@ -89,6 +101,7 @@ class CuentaTest {
             assertEquals(900, cuenta.getSaldo().intValue());
             assertEquals("900.12345", cuenta.getSaldo().toPlainString());
         }
+
         @Tag("cuenta")
         @Test
         void testCreditoCuenta() {
@@ -97,6 +110,7 @@ class CuentaTest {
             assertEquals(1100, cuenta.getSaldo().intValue());
             assertEquals("1100.12345", cuenta.getSaldo().toPlainString());
         }
+
         @Tag("cuenta")
         @Tag("banco")
         @Test
@@ -280,9 +294,9 @@ class CuentaTest {
     }
 
     @DisplayName("Probando Debito Cuenta Repetir!")
-    @RepeatedTest(value=5, name = "{displayName} - Repetición numero {currentRepetition} de {totalRepetitions}")
+    @RepeatedTest(value = 5, name = "{displayName} - Repetición numero {currentRepetition} de {totalRepetitions}")
     void testDebitoCuentaRepetir(RepetitionInfo info) {
-        if(info.getCurrentRepetition() == 3){
+        if (info.getCurrentRepetition() == 3) {
             System.out.println("estamos en la repetición " + info.getCurrentRepetition());
         }
         cuenta = new Cuenta("Andres", new BigDecimal("1000.12345"));
@@ -294,7 +308,7 @@ class CuentaTest {
 
     @Tag("param")
     @Nested
-    class PruebasParametrizadasTest{
+    class PruebasParametrizadasTest {
         @ParameterizedTest(name = "numero {index} ejecutando con valor {0} {argumentsWithNames}")
         @ValueSource(strings = {"100", "200", "300", "500", "700", "1000.12345"})
         void testDebitoCuentaValueSource(String monto) {
@@ -357,7 +371,7 @@ class CuentaTest {
         assertTrue(cuenta.getSaldo().compareTo(BigDecimal.ZERO) > 0);
     }
 
-    static List<String> montoList(){
+    static List<String> montoList() {
         return Arrays.asList("100", "200", "300", "500", "700", "1000.12345");
     }
 }
